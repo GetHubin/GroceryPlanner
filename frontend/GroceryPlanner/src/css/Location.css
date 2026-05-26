@@ -1,0 +1,13 @@
+.locationPanel{
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+}
+.locationBox{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    overflow-y: auto;
+}

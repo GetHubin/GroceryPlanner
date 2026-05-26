@@ -118,7 +118,7 @@ function App() {
                 )}
             </div>
             <div className={"cartPanel"}>cart
-                <div className="cartitems">
+                <div className="cartItems">
                     {cartList.map((item, index) =>
                         <div key={index}>{productBox(item)}</div>
                     )}

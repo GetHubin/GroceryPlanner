@@ -3,9 +3,9 @@ import {
     Route
 } from "react-router-dom";
 
-import Home from "./pages/Home";
-import Grocery from "./Grocery.jsx";
-import Location from "./pages/Loctation";
+import Login from "./pages/Login.jsx";
+import Grocery from "./pages/Grocery.jsx";
+import Location from "./pages/Location.jsx";
 
 function App() {
 
@@ -14,7 +14,7 @@ function App() {
 
             <Route
                 path="/"
-                element={<Home />}
+                element={<Login />}
             />
 
             <Route

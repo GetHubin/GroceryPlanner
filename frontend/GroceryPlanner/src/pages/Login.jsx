@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import '../css/Login.css'
 
 function Login() {
 
@@ -8,7 +9,7 @@ function Login() {
         <div>
             <h1>Welcome</h1>
 
-            <button onClick={() => navigate("/loctation")}>
+            <button onClick={() => navigate("/location")}>
                 Start Shopping
             </button>
         </div>
