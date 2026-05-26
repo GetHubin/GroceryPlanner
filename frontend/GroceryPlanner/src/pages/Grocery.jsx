@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './App.css'
+import '../css/Grocery.css'
 
 function App() {
     const [searchBar, setText] = useState("");
@@ -106,28 +106,28 @@ function App() {
     }
 
     return(
-      <div className={"main-container"}>
-        <div className={"searchPanel"}>search
-            <input type={"text"}
-                   value={searchBar}
-                   placeholder="Type here..." onChange={(e) => setText(e.target.value)}>
-            </input>
-            <button onClick={() => searching()}>Submit</button>
-            {searchList.map((item, index) =>
-                <div key={index}>{productBox(item)}</div>
-            )}
-        </div>
-        <div className={"cartPanel"}>cart
-            <div className="cartitems">
-                {cartList.map((item, index) =>
+        <div className={"main-container"}>
+            <div className={"searchPanel"}>search
+                <input type={"text"}
+                       value={searchBar}
+                       placeholder="Type here..." onChange={(e) => setText(e.target.value)}>
+                </input>
+                <button onClick={() => searching()}>Submit</button>
+                {searchList.map((item, index) =>
                     <div key={index}>{productBox(item)}</div>
                 )}
             </div>
-            <div className={"totalBox"}>total: {totalPrice}
-                <button onClick={() => setCartList([])}>empty cart</button>
+            <div className={"cartPanel"}>cart
+                <div className="cartitems">
+                    {cartList.map((item, index) =>
+                        <div key={index}>{productBox(item)}</div>
+                    )}
+                </div>
+                <div className={"totalBox"}>total: {totalPrice}
+                    <button onClick={() => setCartList([])}>empty cart</button>
+                </div>
             </div>
         </div>
-      </div>
     )
 }
 
