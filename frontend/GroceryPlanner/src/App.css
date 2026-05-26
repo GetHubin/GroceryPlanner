@@ -5,8 +5,10 @@
 .searchPanel{
   display: flex;
   flex-direction: column;
-  background: #9e2b2b;
-  height: 100%;
+  background: #6a6666;
+  color: #08060d;
+  overflow-y: auto;
+  height: 100vh;
   width: 70%
 ;
 }
@@ -14,7 +16,22 @@
 .cartPanel{
   display: flex;
   flex-direction: column;
-  background: #dfcece;
-  height: 100%;
+  background: #a19797;
+  color: #08060d;
+  height: 100vh;
   width: 30%
+}
+
+.cartitems{
+  overflow-y: auto;
+}
+
+.itemBox{
+  display: flex;
+  background: #6b6375;
+}
+.totalBox{
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
 }
