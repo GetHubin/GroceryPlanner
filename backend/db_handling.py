@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 import os
 
-DB_PATH = Path(__file__).parent / "db.json"
+DB_PATH = Path(__file__).parent / "Users.json"
 
 def load_db():
     if not os.path.exists(DB_PATH):
@@ -16,14 +16,11 @@ def save_db(db):
     with open(DB_PATH, "w") as file:
         json.dump(db, file, indent=4)
 
-def store_repo(repo, repo_name):
-    db = load_db()
-    if repo_name in db["repos"]:
-        delete_repo(repo_name)
-    db["repos"][repo_name] = {"files": repo}
-    save_db(db)
+def new_user():
+    pass
 
-def delete_repo(repo_name):
-    db = load_db()
-    db["repos"].pop(repo_name)
-    save_db(db)
+def update_user():
+    pass
+
+def delete_user():
+    pass

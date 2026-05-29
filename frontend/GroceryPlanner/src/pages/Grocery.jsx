@@ -5,6 +5,7 @@ function App() {
     const [searchBar, setText] = useState("");
     const [searchList, setSearchList] = useState([]);
     const [cartList, setCartList] = useState([]);
+    const [selectedInfo, setSelecetedInfo] = useState("");
     const totalPrice = cartList.reduce((sum, item) => {
         return sum + ((item?.price ?? 0) * item.quantity);
     }, 0);
@@ -101,8 +102,29 @@ function App() {
                         remove from cart
                     </button>
                 )}
+                <button onClick={() => setSelecetedInfo(item.description)}>i</button>
+                {selectedInfo === item.description && (
+                    <div className={"infoBox"}>{informationBox(item)}</div>)}
             </div>
         );
+    }
+
+    function informationBox(item) {
+        return(
+            <div className="infoPanel">
+                <h1>{item.description}</h1>
+                <img
+                    src={item.imageUrl || "/placeholder.png"}
+                    alt={item.description}
+                    style={{ width: "150px", height: "150px" }}
+                />
+                <button onClick={() => setSelecetedInfo("")}>close</button>
+                <p>{item.aisleLocations}</p>
+                <p>{item.manufacturerDeclarations}</p>
+                <p>{item.allergensDescription}</p>
+                <p>${item.price}</p>
+            </div>
+        )
     }
 
     return(

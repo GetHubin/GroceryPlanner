@@ -63,6 +63,28 @@ async def get_location_on_zip(zip_code: str):
         })
     return simplified
 
+@app.get("/locations/{latitude}/{longitude}")
+async def get_location(latitude: str, longitude: str):
+    token = (await get_token())["access_token"]
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"https://api.kroger.com/v1/locations?filter.latLong.near={latitude},{longitude}", headers=headers)
+    response = response.json()
+    simplified = []
+    if "data" in response:
+        for item in response["data"]:
+            address = item["address"]["addressLine1"] + " " + item["address"]["city"] + ", " + item["address"][
+                "state"] + " " + item["address"]["zipCode"]
+            simplified.append({
+                "name": item["name"],
+                "locationId": item["locationId"],
+                "storeNumber": item["storeNumber"],
+                "address": address,
+            })
+    else :
+        print(response["errors"]["reason"])
+    return simplified
+
 @app.patch("/locations/{location_id}")
 async def update_product(location_id: str):
     db = load_db()
@@ -93,12 +115,124 @@ async def search(search_term: str):
             ):
                 price = item["items"][0]["price"].get("regular")
 
+            description = (
+                item["aisleLocations"][0]["description"]
+                if item["aisleLocations"]
+                else "Unknown"
+            )
+            imageURL = None
+            for image in item["images"]:
+                if image["perspective"] == "front":
+                    imageURL = image["sizes"][0]["url"]
+
             simplified.append({
                 "productId": item["productId"],
                 "description": item["description"],
                 "price": price,
+                "aisleLocations": description,
+                "manufacturerDeclarations": item.get("manufacturerDeclarations", []),
+                "allergensDescription": item.get("allergensDescription", []),
+                "imageUrl": imageURL,
                 "quantity": 1
             })
     else:
         print("hey you need help")
     return simplified
+
+@app.post("/accounts")
+async def create_account(info: dict):
+
+    db = load_db()
+
+    for user in db:
+
+        if user["username"] == info["username"]:
+
+            return {
+                "message": "username already exists"
+            }
+
+    db.append({
+        "username": info["username"],
+        "password": info["password"],
+        "recentLocations": [],
+        "cart": []
+    })
+
+    save_db(db)
+
+    return {
+        "message": "success"
+    }
+
+@app.get("/accounts")
+async def login(info: dict):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == info["username"] and user["password"] == info["password"]:
+            return {"message": "success"}
+    return {"message": "User not found"}
+
+@app.delete("/accounts/{username}")
+async def delete_account(username: str):
+    db = load_db()
+    db.remove({"username": username})
+    save_db(db)
+    return {"message": "success"}
+
+@app.get("/accounts/{username}")
+async def get_account(username: str):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == username:
+            return user
+    return {"message": "User not found"}
+
+@app.patch("/accounts/{username}/cart")
+async def update_cart(username: str, cart: dict):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == username:
+            user["cart"] = cart["items"]
+    save_db(db)
+    return {"message": "success"}
+
+@app.patch("/accounts/{username}/locations")
+async def update_locations(username: str, locations: dict):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == username:
+            if locations["locationID"] not in user["locations"]:
+                if len(user["locations"]) < 3:
+                    user["locations"].append(locations["locationId"])
+                else:
+                    user["locations"][0] = [locations["locationId"]]
+            return {"message": "success"}
+    return {"message": "User not found"}
+
+@app.patch("/accounts/{username}/change_password")
+async def change_password(username: str, passwords: dict):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == username:
+            if user["password"] == passwords["oldPassword"]:
+                user["password"] = passwords["newPassword"]
+                return {"message": "success"}
+            else:
+                return {"message": "incorrect old password"}
+
+@app.get("/accounts/{username}/prevLocations")
+async def get_prev_locations(username: str):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == username:
+            return user["locations"]
+    return {"message": "User not found"}
+
+@app.get("/accounts/{username}/savedCart")
+async def get_saved_cart(username: str):
+    db = load_db()
+    for user in db["users"]:
+        if user["username"] == username:
+            return user["cart"]
+    return {"message": "User not found"}

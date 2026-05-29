@@ -1,18 +1,45 @@
 import { useNavigate } from "react-router-dom";
 import '../css/Location.css'
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 function Location() {
     const [zip, setZip] = useState("")
     const navigate = useNavigate();
     const [locationList, setLocationList] = useState([]);
+    function prevLocations(){
+        fetch(`http://localhost:5000/accounts/${localStorage.getItem("currUser")}/prevLocations`)
+        .then(res => res.json())
+        .then(res =>
+        {if(res.message !== "User not found"){
+            setLocationList(res["locations"]);
+        }})
+    }
+    useEffect(() => {
+        prevLocations()
+    }, []);
+    function updateUserLocations(location){
+        fetch(`http://localhost:5000/accounts/${localStorage.getItem("currUser")}/locations`,
+            {"method": "PATCH", body: JSON.stringify({"locationId" : location.locationId})})
+    }
 
-    function findLocations(zip) {
+    function findWZip(zip) {
         setZip(zip);
         fetch(`http://localhost:8000/locations/${zip}`,
             {"method": "GET", headers: {"Content-Type": "application/json"}})
             .then(res => res.json())
             .then(locationList => setLocationList(locationList))
+    }
+    function findWLocation(){
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                console.log(position.coords.latitude);
+                console.log(position.coords.longitude);
+                fetch(`http://localhost:8000/locations/${position.coords.latitude}/${position.coords.longitude}`,
+                    {method: "GET", headers: {"Content-Type": "application/json"}})
+                    .then(res => res.json())
+                    .then(locationList => setLocationList(locationList))
+            }
+        )
     }
     function modifyLocation(location) {
         fetch(`http://localhost:8000/locations/${location.locationId}`, {method: "PATCH", headers: {"Content-Type": "application/json"}} )
@@ -24,6 +51,7 @@ function Location() {
             <p>id: {location.storeNumber} at {location.address}</p>
             <button onClick={() => {
                 modifyLocation(location);
+                updateUserLocations(location);
                 navigate("/grocery")
             }}>this location</button>
         </div>
@@ -37,9 +65,9 @@ function Location() {
                              value={zip}
                              placeholder="Type here..." onChange={(e) => setZip(e.target.value)}>
                 </input>
-                <button onClick={() => findLocations(zip)}>Submit</button>
+                <button onClick={() => findWZip(zip)}>Submit</button>
                 <h1>OR</h1>
-                <button>use current Location</button>
+                <button onClick={findWLocation}>use current Location</button>
             </div>
             <div className={"locationsContainer"}>
             {locationList.map((location, index) =>
