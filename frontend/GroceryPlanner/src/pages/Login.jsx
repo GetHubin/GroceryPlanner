@@ -9,15 +9,14 @@ function Login() {
 
 function login()
 {
-    fetch("http://localhost:8000/accounts", {
-        method: "GET",
+    fetch("http://localhost:8000/accounts/login", {
+        method: "POST",
         body: JSON.stringify({username: Username, password: Password}),
         headers: {
             "Content-Type": "application/json"
         }
     })
         .then(response => response.json())
-        .then(res => res.data)
         .then(data => {
             if (data.message === "success"){
                 localStorage.setItem("currUser", Username);
@@ -26,7 +25,7 @@ function login()
         })
 }
 function signup(){
-    fetch("http://localhost:8000/accounts", {
+    fetch("http://localhost:8000/accounts/signup", {
         method: "POST",
         body: JSON.stringify({username: Username, password: Password}),
         headers: {

@@ -6,25 +6,22 @@ function Location() {
     const [zip, setZip] = useState("")
     const navigate = useNavigate();
     const [locationList, setLocationList] = useState([]);
-    function prevLocations(){
-        fetch(`http://localhost:5000/accounts/${localStorage.getItem("currUser")}/prevLocations`)
-        .then(res => res.json())
-        .then(res =>
-        {if(res.message !== "User not found"){
-            setLocationList(res["locations"]);
-        }})
-    }
-    useEffect(() => {
-        prevLocations()
-    }, []);
+
     function updateUserLocations(location){
-        fetch(`http://localhost:5000/accounts/${localStorage.getItem("currUser")}/locations`,
-            {"method": "PATCH", body: JSON.stringify({"locationId" : location.locationId})})
+        fetch(`http://localhost:8000/accounts/${localStorage.getItem("currUser")}/locations`,
+            {"method": "PATCH", body: JSON.stringify({"locationId" : location.locationId}),
+                "headers": {"Content-Type": "application/json"}})
     }
 
+    function findWId(locationId){
+        fetch(`http://localhost:8000/locations/${locationId}/id`,
+            {"method": "GET", headers: {"Content-Type": "application/json"}})
+            .then(res => res.json())
+            .then(locationList => setLocationList(locationList))
+    }
     function findWZip(zip) {
         setZip(zip);
-        fetch(`http://localhost:8000/locations/${zip}`,
+        fetch(`http://localhost:8000/locations/${zip}/zip`,
             {"method": "GET", headers: {"Content-Type": "application/json"}})
             .then(res => res.json())
             .then(locationList => setLocationList(locationList))
@@ -42,7 +39,8 @@ function Location() {
         )
     }
     function modifyLocation(location) {
-        fetch(`http://localhost:8000/locations/${location.locationId}`, {method: "PATCH", headers: {"Content-Type": "application/json"}} )
+        fetch(`http://localhost:8000/accounts/${localStorage.getItem("currUser")}/locations`,
+            {method: "PATCH", headers: {"Content-Type": "application/json"}, "body": JSON.stringify({"locationId": location.locationId})} )
     }
     function locationBox(location){
         console.log(location)
@@ -56,6 +54,23 @@ function Location() {
             }}>this location</button>
         </div>
     }
+
+    function prevLocations(){
+        fetch(`http://localhost:8000/accounts/${localStorage.getItem("currUser")}/prevLocations`,
+            {"method": "GET", "headers": {"Content-Type": "application/json"}})
+            .then(res => res.json())
+            .then(res =>
+            {if(res.message !== "User not found"){
+                for(let i=0; i<res.length; i++ ){
+                    findWId(res[i]);
+                }
+            }
+            })
+    }
+    useEffect(() => {
+        prevLocations()
+    }, []);
+
     return (
         <div className="locationPanel">
             <h1>Store Locator</h1>

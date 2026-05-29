@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {useEffect, useState} from 'react'
 import '../css/Grocery.css'
 
 function App() {
@@ -57,11 +57,13 @@ function App() {
         );
     }
 
+
     function searching() {
         fetch(`http://localhost:8000/search/${searchBar}`)
             .then(res => res.json())
             .then(res => {setSearchList(res)})
     }
+
 
     function productBox(item) {
         console.log(item);
@@ -126,6 +128,36 @@ function App() {
             </div>
         )
     }
+    function saveCart(){
+        const ids= cartList.map(product => product.productId);
+        fetch(`http://localhost:8000/accounts/${localStorage.getItem("currUser")}/cart`,
+            {"method": "PATCH", body: JSON.stringify({"items" : ids}),
+                "headers": {"Content-Type": "application/json"}})
+    }
+
+    function prevCart(){
+        fetch(`http://localhost:8000/accounts/${localStorage.getItem("currUser")}/savedCart`,
+            {"method": "GET", "headers": {"Content-Type": "application/json"}})
+            .then(res => res.json())
+            .then(res =>
+            {if(res.message !== "User not found"){
+                if(res.length === 0){
+                    setCartList([])
+                }
+                Promise.all(
+                    res.map(id =>
+                        fetch(`http://localhost:8000/products/${id}`)
+                            .then(r => r.json())
+                    )
+                ).then(products => {
+                    setCartList(products);
+                });
+            }
+            })
+    }
+    useEffect(() => {
+        prevCart()
+    }, []);
 
     return(
         <div className={"main-container"}>
@@ -147,6 +179,7 @@ function App() {
                 </div>
                 <div className={"totalBox"}>total: {totalPrice}
                     <button onClick={() => setCartList([])}>empty cart</button>
+                    <button onClick={() => saveCart()}>save cart</button>
                 </div>
             </div>
         </div>

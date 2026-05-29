@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from backend.db_handling import load_db, save_db
-
+from backend.APISupport import simplifyLocation, simplify_product_response
 
 app = FastAPI()
 app.add_middleware(
@@ -45,23 +45,23 @@ async def get_token():
 
     return response.json()
 
-@app.get("/locations/{zip_code}")
+@app.get("/locations/{zip_code}/zip")
 async def get_location_on_zip(zip_code: str):
     token = (await get_token())["access_token"]
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     async with httpx.AsyncClient() as client:
         response = await client.get(f"https://api.kroger.com/v1/locations?filter.zipCode.near={zip_code}&filter.limit=100", headers=headers)
     response = response.json()
-    simplified = []
-    for item in response["data"]:
-        address = item["address"]["addressLine1"] + " " + item["address"]["city"] + ", " + item["address"]["state"] + " " + item["address"]["zipCode"]
-        simplified.append({
-            "name": item["name"],
-            "locationId": item["locationId"],
-            "storeNumber": item["storeNumber"],
-            "address": address,
-        })
-    return simplified
+    return simplifyLocation(response)
+
+@app.get("/locations/{location_id}/id")
+async def get_location_on_location_id(location_id: str):
+    token = (await get_token())["access_token"]
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"https://api.kroger.com/v1/locations?filter.locationId={location_id}", headers=headers)
+    response = response.json()
+    return simplifyLocation(response)
 
 @app.get("/locations/{latitude}/{longitude}")
 async def get_location(latitude: str, longitude: str):
@@ -70,20 +70,9 @@ async def get_location(latitude: str, longitude: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"https://api.kroger.com/v1/locations?filter.latLong.near={latitude},{longitude}", headers=headers)
     response = response.json()
-    simplified = []
-    if "data" in response:
-        for item in response["data"]:
-            address = item["address"]["addressLine1"] + " " + item["address"]["city"] + ", " + item["address"][
-                "state"] + " " + item["address"]["zipCode"]
-            simplified.append({
-                "name": item["name"],
-                "locationId": item["locationId"],
-                "storeNumber": item["storeNumber"],
-                "address": address,
-            })
-    else :
-        print(response["errors"]["reason"])
-    return simplified
+    return simplifyLocation(response)
+
+
 
 @app.patch("/locations/{location_id}")
 async def update_product(location_id: str):
@@ -93,58 +82,37 @@ async def update_product(location_id: str):
     if db["location_id"] != 0:
         print ("location_id now " + str(location_id))
 
+@app.get("/products/{product_id}")
+async def search_product(product_id: str):
+    token = (await get_token())["access_token"]
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    db = load_db()
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"https://api.kroger.com/v1/products?filter.productId={product_id}&filter.limit={LIMIT}&filter.locationId={db['location_id']}",
+            headers=headers
+        )
+    response = response.json()
+    return simplify_product_response(response)
+
 @app.get("/search/{search_term}")
 async def search(search_term: str):
     token = (await get_token())["access_token"]
     db = load_db()
-    print(db)
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"https://api.kroger.com/v1/products?filter.term={search_term}&filter.limit={LIMIT}&filter.locationId={db["location_id"]}", headers=headers
         )
     response = response.json()
-    simplified = []
-    price = None
-    if "data" in response:
-        for item in response["data"]:
-            if (
-                    item.get("items")
-                    and len(item["items"]) > 0
-                    and item["items"][0].get("price")
-            ):
-                price = item["items"][0]["price"].get("regular")
+    return simplify_product_response(response)
 
-            description = (
-                item["aisleLocations"][0]["description"]
-                if item["aisleLocations"]
-                else "Unknown"
-            )
-            imageURL = None
-            for image in item["images"]:
-                if image["perspective"] == "front":
-                    imageURL = image["sizes"][0]["url"]
-
-            simplified.append({
-                "productId": item["productId"],
-                "description": item["description"],
-                "price": price,
-                "aisleLocations": description,
-                "manufacturerDeclarations": item.get("manufacturerDeclarations", []),
-                "allergensDescription": item.get("allergensDescription", []),
-                "imageUrl": imageURL,
-                "quantity": 1
-            })
-    else:
-        print("hey you need help")
-    return simplified
-
-@app.post("/accounts")
+@app.post("/accounts/signup")
 async def create_account(info: dict):
 
     db = load_db()
 
-    for user in db:
+    for user in db["users"]:
 
         if user["username"] == info["username"]:
 
@@ -152,7 +120,7 @@ async def create_account(info: dict):
                 "message": "username already exists"
             }
 
-    db.append({
+    db["users"].append({
         "username": info["username"],
         "password": info["password"],
         "recentLocations": [],
@@ -165,7 +133,7 @@ async def create_account(info: dict):
         "message": "success"
     }
 
-@app.get("/accounts")
+@app.post("/accounts/login")
 async def login(info: dict):
     db = load_db()
     for user in db["users"]:
@@ -190,24 +158,50 @@ async def get_account(username: str):
 
 @app.patch("/accounts/{username}/cart")
 async def update_cart(username: str, cart: dict):
+    print(cart)
     db = load_db()
     for user in db["users"]:
+
         if user["username"] == username:
-            user["cart"] = cart["items"]
-    save_db(db)
-    return {"message": "success"}
+
+            items = cart.get("items", [])
+
+            user["cart"] = items
+
+            save_db(db)
+
+            return {"message": "success"}
+
+    return {"message": "user not found"}
 
 @app.patch("/accounts/{username}/locations")
 async def update_locations(username: str, locations: dict):
+
     db = load_db()
+
     for user in db["users"]:
+
         if user["username"] == username:
-            if locations["locationID"] not in user["locations"]:
-                if len(user["locations"]) < 3:
-                    user["locations"].append(locations["locationId"])
-                else:
-                    user["locations"][0] = [locations["locationId"]]
+
+            if "recentLocations" not in user:
+                user["recentLocations"] = []
+
+            loc_id = locations["locationId"]
+
+            # remove if already exists (avoid duplicates)
+            if loc_id in user["recentLocations"]:
+                user["recentLocations"].remove(loc_id)
+
+            # add newest to front
+            user["recentLocations"].insert(0, loc_id)
+
+            # keep only last 3
+            user["recentLocations"] = user["recentLocations"][:3]
+
+            save_db(db)
+
             return {"message": "success"}
+
     return {"message": "User not found"}
 
 @app.patch("/accounts/{username}/change_password")
@@ -226,7 +220,7 @@ async def get_prev_locations(username: str):
     db = load_db()
     for user in db["users"]:
         if user["username"] == username:
-            return user["locations"]
+            return user["recentLocations"]
     return {"message": "User not found"}
 
 @app.get("/accounts/{username}/savedCart")
@@ -236,3 +230,4 @@ async def get_saved_cart(username: str):
         if user["username"] == username:
             return user["cart"]
     return {"message": "User not found"}
+
