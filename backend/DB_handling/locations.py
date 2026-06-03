@@ -1,4 +1,4 @@
-from backend.DB_handling.storage import save_db, load_db
+from backend.DB_handling.storage import  load_db
 from backend.DB_handling.users import get_user
 
 

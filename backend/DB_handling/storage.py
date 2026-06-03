@@ -1,7 +1,5 @@
 from pathlib import Path
 import sqlite3
-import json
-import os
 
 DB_PATH = "backend/data.db"
 REPO_PATH = Path(__file__).resolve().parents[2]
@@ -12,13 +10,6 @@ def load_db():
     connection = sqlite3.connect(SQL_PATH)
     connection.row_factory = sqlite3.Row
     return connection
-
-
-def save_db(db):
-    db.commit()
-
-
-
 
 
 def init_db():
@@ -53,9 +44,6 @@ def init_db():
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
     )
-    """)
-    cur.execute("""
-    DROP TABLE IF EXISTS price_history
     """)
     cur.execute("""
     CREATE TABLE price_history (

@@ -1,70 +1,81 @@
-from backend.DB_handling.storage import load_db, save_db
-
+from backend.DB_handling.storage import load_db
+import sqlite3
 
 def get_user(username):
     db = load_db()
+    cur = db.cursor()
+    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+    user = cur.fetchone()
+    db.close()
+    if user is None:
+        return None
+    return dict(user)
 
-    for user in db["users"]:
-        if user["username"] == username:
-            return user
-
-    return None
-
+def get_user_id(username):
+    db = load_db()
+    cur = db.cursor()
+    cur.execute("SELECT user_id FROM users WHERE username = ?", (username,))
+    user_id = cur.fetchone()
+    db.close()
+    if user_id is None:
+        return None
+    return dict(user_id)
 
 def create_user(username, password):
     db = load_db()
-
-    for user in db["users"]:
-        if user["username"] == username:
-            return False
-
-    db["users"].append({
-        "username": username,
-        "password": password,
-        "recentLocations": [],
-        "cart": [],
-        "curr_location_id": None
-    })
-
-    save_db(db)
+    cur = db.cursor()
+    cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+    db.commit()
+    db.close()
     return True
 
 
 def login_user(username, password):
     user = get_user(username)
-
     if user is None:
         return False
-
-    return user["password"] == password
+    elif user["password"] == password:
+        return True
+    return False
 
 
 def delete_user(username):
     db = load_db()
-
-    db["users"] = [
-        user
-        for user in db["users"]
-        if user["username"] != username
-    ]
-
-    save_db(db)
+    cur = db.cursor()
+    cur.execute("DELETE FROM users WHERE username = ?", (username,))
+    db.commit()
+    deleted = cur.rowcount
+    db.close()
+    if deleted != 0:
+        return True
+    else:
+        return False
 
 
 
 def change_user_password(username, old_password, new_password):
     db = load_db()
+    cur = db.cursor()
 
-    for user in db["users"]:
-        if user["username"] == username:
+    cur.execute(
+        "SELECT password FROM users WHERE username = ?",
+        (username,)
+    )
+    row = cur.fetchone()
 
-            if user["password"] != old_password:
-                return False
+    if row is None:
+        db.close()
+        return False
 
-            user["password"] = new_password
+    if row[0] != old_password:
+        db.close()
+        return False
 
-            save_db(db)
+    cur.execute(
+        "UPDATE users SET password = ? WHERE username = ?",
+        (new_password, username)
+    )
 
-            return True
-
-    return None
+    db.commit()
+    db.close()
+    return True

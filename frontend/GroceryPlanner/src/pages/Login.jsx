@@ -19,7 +19,7 @@ function login()
         .then(response => response.json())
         .then(data => {
             if (data.message === "success"){
-                localStorage.setItem("currUser", Username);
+                localStorage.setItem("currUser", data.userId);
                 navigate("/Location");
             }
         })
@@ -35,7 +35,7 @@ function signup(){
         .then(response => response.json())
         .then(data => {
             if (data.message === "success"){
-                localStorage.setItem("currUser", Username);
+                localStorage.setItem("currUser", data.userId);
                 navigate("/Location");
             }
         })
