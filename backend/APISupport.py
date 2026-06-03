@@ -1,4 +1,4 @@
-def simplifyLocation(response):
+def simplify_location(response):
     simplified = []
     if "data" in response:
         for item in response["data"]:

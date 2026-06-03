@@ -59,7 +59,7 @@ function App() {
 
 
     function searching() {
-        fetch(`http://localhost:8000/search/${searchBar}`)
+        fetch(`http://localhost:8000/search/${searchBar}/${localStorage.getItem("currUser")}`)
             .then(res => res.json())
             .then(res => {setSearchList(res)})
     }
@@ -146,7 +146,7 @@ function App() {
                 }
                 Promise.all(
                     res.map(id =>
-                        fetch(`http://localhost:8000/products/${id}`)
+                        fetch(`http://localhost:8000/products/${id}/${localStorage.getItem("currUser")}`,)
                             .then(r => r.json())
                     )
                 ).then(products => {
