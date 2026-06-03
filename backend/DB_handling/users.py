@@ -1,10 +1,10 @@
 from backend.DB_handling.storage import load_db
 import sqlite3
 
-def get_user(username):
+def get_user(user_id):
     db = load_db()
     cur = db.cursor()
-    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+    cur.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
     user = cur.fetchone()
     db.close()
     if user is None:
@@ -31,18 +31,19 @@ def create_user(username, password):
 
 
 def login_user(username, password):
-    user = get_user(username)
+    user_id = get_user_id(username)["user_id"]
+    user = get_user(user_id)
     if user is None:
         return False
     elif user["password"] == password:
-        return True
-    return False
+        return user_id
+    return None
 
 
-def delete_user(username):
+def delete_user(user_id):
     db = load_db()
     cur = db.cursor()
-    cur.execute("DELETE FROM users WHERE username = ?", (username,))
+    cur.execute("DELETE FROM users WHERE user_id = ?", (user_id,))
     db.commit()
     deleted = cur.rowcount
     db.close()
@@ -53,13 +54,13 @@ def delete_user(username):
 
 
 
-def change_user_password(username, old_password, new_password):
+def change_user_password(user_id, old_password, new_password):
     db = load_db()
     cur = db.cursor()
 
     cur.execute(
-        "SELECT password FROM users WHERE username = ?",
-        (username,)
+        "SELECT password FROM users WHERE user_id = ?",
+        (user_id,)
     )
     row = cur.fetchone()
 
@@ -67,13 +68,13 @@ def change_user_password(username, old_password, new_password):
         db.close()
         return False
 
-    if row[0] != old_password:
+    if row["password"] != old_password:
         db.close()
         return False
 
     cur.execute(
-        "UPDATE users SET password = ? WHERE username = ?",
-        (new_password, username)
+        "UPDATE users SET password = ? WHERE user_id = ?",
+        (new_password, user_id)
     )
 
     db.commit()
