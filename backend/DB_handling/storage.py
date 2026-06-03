@@ -26,40 +26,44 @@ def init_db():
     cur = conn.cursor()
 
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT,
-        curr_location_id TEXT
+    CREATE TABLE location_history (
+    user_id INTEGER NOT NULL,
+    location_id INTEGER NOT NULL,
+
+    PRIMARY KEY (user_id, location_id),
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
     )
     """)
 
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS cart (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        product_id TEXT,
-        quantity INTEGER
+    CREATE TABLE cart (
+    user_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+
+    PRIMARY KEY (user_id, item_id),
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
     )
     """)
 
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS location_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        location_id TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    CREATE TABLE users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
     )
     """)
     cur.execute("""
     DROP TABLE IF EXISTS price_history
     """)
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS price_history (
-        product_id TEXT PRIMARY KEY,
-        store_id TEXT,
-        price REAL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    CREATE TABLE price_history (
+    item_id INTEGER NOT NULL,
+    week_date DATE NOT NULL,
+    price REAL NOT NULL,
+
+    PRIMARY KEY (item_id, week_date)
     )
     """)
 
