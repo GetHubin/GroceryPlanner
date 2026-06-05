@@ -5,7 +5,7 @@ function App() {
     const [searchBar, setText] = useState("");
     const [searchList, setSearchList] = useState([]);
     const [cartList, setCartList] = useState([]);
-    const [selectedInfo, setSelecetedInfo] = useState("");
+    const [selectedInfo, setSelectedInfo] = useState("");
     const totalPrice = cartList.reduce((sum, item) => {
         return sum + ((item?.price ?? 0) * item.quantity);
     }, 0);
@@ -104,7 +104,7 @@ function App() {
                         remove from cart
                     </button>
                 )}
-                <button onClick={() => setSelecetedInfo(item.description)}>i</button>
+                <button onClick={() => setSelectedInfo(item.description)}>i</button>
                 {selectedInfo === item.description && (
                     <div className={"infoBox"}>{informationBox(item)}</div>)}
             </div>
@@ -120,7 +120,7 @@ function App() {
                     alt={item.description}
                     style={{ width: "150px", height: "150px" }}
                 />
-                <button onClick={() => setSelecetedInfo("")}>close</button>
+                <button onClick={() => setSelectedInfo("")}>close</button>
                 <p>{item.aisleLocations}</p>
                 <p>{item.manufacturerDeclarations}</p>
                 <p>{item.allergensDescription}</p>

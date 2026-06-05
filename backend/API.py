@@ -75,11 +75,11 @@ async def get_location(latitude: str, longitude: str):
     response = response.json()
     return simplify_location(response)
 
-@app.get("/products/{product_id}/{username}")
-async def search_product(product_id: str, username: str):
+@app.get("/products/{product_id}/{user_id}")
+async def search_product(product_id: str, user_id: int):
     token = (await get_token())["access_token"]
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    user = get_user(username)
+    user = get_user(user_id)
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"https://api.kroger.com/v1/products?filter.productId={product_id}&filter.limit={LIMIT}&filter.locationId={user['curr_location_id']}",
@@ -88,14 +88,15 @@ async def search_product(product_id: str, username: str):
     response = response.json()
     return simplify_product_response(response)
 
-@app.get("/search/{search_term}/{username}")
-async def search(search_term: str, username: str):
+@app.get("/search/{search_term}/{user_id}")
+async def search(search_term: str, user_id: int):
     token = (await get_token())["access_token"]
-    user = get_user(username)
+    user = get_user(user_id)
+    print(user["current_location_id"])
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"https://api.kroger.com/v1/products?filter.term={search_term}&filter.limit={LIMIT}&filter.locationId={user['curr_location_id']}", headers=headers
+            f"https://api.kroger.com/v1/products?filter.term={search_term}&filter.limit={LIMIT}&filter.locationId={user['current_location_id']}", headers=headers
         )
     response = response.json()
     return simplify_product_response(response)
@@ -124,39 +125,39 @@ async def login(info: dict):
 
     return {"message": "User not found"}
 
-@app.delete("/accounts/{username}")
-async def delete_account(username: str):
+@app.delete("/accounts/{user_id}")
+async def delete_account(user_id: int):
 
-    delete_user(username)
+    delete_user(user_id)
 
     return {"message": "success"}
 
-@app.get("/accounts/{username}")
-async def get_account(username: str):
+@app.get("/accounts/{user_id}")
+async def get_account(user_id: int):
 
-    user = get_user(username)
+    user = get_user(user_id)
 
     if user:
         return user
 
     return {"message": "User not found"}
 
-@app.patch("/accounts/{username}/cart")
-async def update_cart_route(username: str, cart: dict):
+@app.patch("/accounts/{user_id}/cart")
+async def update_cart_route(user_id: int, cart: dict):
 
     if update_cart(
-        username,
+        user_id,
         cart.get("items", [])
     ):
         return {"message": "success"}
 
     return {"message": "user not found"}
 
-@app.patch("/accounts/{username}/locations")
-async def update_location(username: str, locations: dict):
+@app.patch("/accounts/{user_id}/locations")
+async def update_location(user_id: int, locations: dict):
 
     success = update_location_history(
-        username,
+        user_id,
         locations["locationId"]
     )
 
@@ -165,32 +166,31 @@ async def update_location(username: str, locations: dict):
 
     return {"message": "User not found"}
 
-@app.patch("/accounts/{username}/change_password")
-async def change_password(username: str, passwords: dict):
+@app.patch("/accounts/{user_id}/change_password")
+async def change_password(user_id: int, passwords: dict):
 
     result = change_user_password(
-        username,
+        user_id,
         passwords["oldPassword"],
         passwords["newPassword"]
     )
 
     return {"message": result}
 
-@app.get("/accounts/{username}/prevLocations")
-async def get_prev_locations(username: str):
+@app.get("/accounts/{user_id}/prevLocations")
+async def get_prev_locations(user_id: int):
 
-    locations = get_recent_locations(username)
+    locations = get_recent_locations(user_id)
 
     if locations is not None:
         return locations
 
     return {"message": "User not found"}
 
-@app.get("/accounts/{username}/savedCart")
-@app.get("/accounts/{username}/savedCart")
-async def get_saved_cart(username: str):
+@app.get("/accounts/{user_id}/savedCart")
+async def get_saved_cart(user_id: int):
 
-    cart = get_cart(username)
+    cart = get_cart(user_id)
 
     if cart is not None:
         return cart
