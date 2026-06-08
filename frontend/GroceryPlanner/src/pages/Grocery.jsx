@@ -129,9 +129,9 @@ function App() {
         )
     }
     function saveCart(){
-        const ids= cartList.map(product => product.productId);
+        const items= cartList.map(product => ({"itemId": product.productId, "quantity": product.quantity}));
         fetch(`http://localhost:8000/accounts/${localStorage.getItem("currUser")}/cart`,
-            {"method": "PATCH", body: JSON.stringify({"items" : ids}),
+            {"method": "PATCH", body: JSON.stringify({"items" : items}),
                 "headers": {"Content-Type": "application/json"}})
     }
 
@@ -145,9 +145,15 @@ function App() {
                     setCartList([])
                 }
                 Promise.all(
-                    res.map(id =>
-                        fetch(`http://localhost:8000/products/${id}/${localStorage.getItem("currUser")}`,)
+                    res.map(item =>
+                        fetch(
+                            `http://localhost:8000/products/${item.item_id}/${localStorage.getItem("currUser")}`
+                        )
                             .then(r => r.json())
+                            .then(product => ({
+                                ...product,
+                                quantity: item.quantity
+                            }))
                     )
                 ).then(products => {
                     setCartList(products);

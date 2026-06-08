@@ -82,7 +82,7 @@ async def search_product(product_id: str, user_id: int):
     user = get_user(user_id)
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"https://api.kroger.com/v1/products?filter.productId={product_id}&filter.limit={LIMIT}&filter.locationId={user['curr_location_id']}",
+            f"https://api.kroger.com/v1/products?filter.productId={product_id}&filter.limit={LIMIT}&filter.locationId={user['current_location_id']}",
             headers=headers
         )
     response = response.json()
@@ -99,29 +99,31 @@ async def search(search_term: str, user_id: int):
             f"https://api.kroger.com/v1/products?filter.term={search_term}&filter.limit={LIMIT}&filter.locationId={user['current_location_id']}", headers=headers
         )
     response = response.json()
+    print(response)
     return simplify_product_response(response)
 
 @app.post("/accounts/signup")
 async def create_account(info: dict):
 
-    success = create_user(
+    user_id = create_user(
         info["username"],
         info["password"]
     )
 
-    if success:
-        return {"message": "success"}
+    if user_id:
+        return {"message": "success", "userId": user_id}
 
     return {"message": "username already exists"}
 
 @app.post("/accounts/login")
 async def login(info: dict):
 
-    if login_user(
+    user_id = login_user(
         info["username"],
         info["password"]
-    ):
-        return {"message": "success"}
+    )
+    if user_id:
+        return {"message": "success", "userId": user_id}
 
     return {"message": "User not found"}
 

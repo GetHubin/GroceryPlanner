@@ -16,7 +16,7 @@ def update_location_history(user_id, location_id):
 
     # 2. insert into history (no duplicate check needed if we don't care)
     cur.execute(
-        "INSERT INTO location_history (user_id, location_id) VALUES (?, ?)",
+        "INSERT OR IGNORE INTO location_history (user_id, location_id) VALUES (?, ?)",
         (user_id, location_id)
     )
 
@@ -56,4 +56,5 @@ def get_current_location(user_id):
     user = cur.fetchone()
     if user:
         return user["current_location_id"]
+    db.close()
     return None

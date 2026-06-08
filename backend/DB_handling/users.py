@@ -27,14 +27,15 @@ def create_user(username, password):
     cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
     db.commit()
     db.close()
-    return True
+    user_id = get_user_id(username)["user_id"]
+    return user_id
 
 
 def login_user(username, password):
     user_id = get_user_id(username)["user_id"]
     user = get_user(user_id)
     if user is None:
-        return False
+        return None
     elif user["password"] == password:
         return user_id
     return None

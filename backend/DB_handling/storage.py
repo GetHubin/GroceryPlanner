@@ -15,11 +15,11 @@ def load_db():
 def init_db():
     conn = load_db()
     cur = conn.cursor()
-
+    cur.execute("""drop table if exists cart""")
     # cur.execute("""
     # CREATE TABLE location_history (
     # user_id INTEGER NOT NULL,
-    # location_id INTEGER NOT NULL,
+    # location_id TEXT NOT NULL,
     #
     # PRIMARY KEY (user_id, location_id),
     #
@@ -27,23 +27,24 @@ def init_db():
     # )
     # """)
     #
-    # cur.execute("""
-    # CREATE TABLE cart (
-    # user_id INTEGER NOT NULL,
-    # item_id INTEGER NOT NULL,
+    cur.execute("""
+    CREATE TABLE cart (
+    user_id INTEGER NOT NULL,
+    item_id TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+
+    PRIMARY KEY (user_id, item_id),
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )
+    """)
     #
-    # PRIMARY KEY (user_id, item_id),
-    #
-    # FOREIGN KEY (user_id) REFERENCES users(user_id)
-    # )
-    # """)
-    #
-    # cur.execute("""
+    # # cur.execute("""
     # CREATE TABLE users (
     # user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     # username TEXT NOT NULL UNIQUE,
     # password TEXT NOT NULL,
-    # current_location_id INTEGER
+    # current_location_id TEXT
     # )
     # """)
     # cur.execute("""
