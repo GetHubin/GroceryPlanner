@@ -1,7 +1,9 @@
 import {useEffect, useState} from 'react'
 import '../css/Grocery.css'
+import {useNavigate} from "react-router-dom";
 
 function App() {
+    const navigate = useNavigate();
     const [searchBar, setText] = useState("");
     const [searchList, setSearchList] = useState([]);
     const [cartList, setCartList] = useState([]);
@@ -9,6 +11,9 @@ function App() {
     const totalPrice = cartList.reduce((sum, item) => {
         return sum + ((item?.price ?? 0) * item.quantity);
     }, 0);
+
+
+
 
     function decrement(item) {
         if (item.quantity > 0) {
@@ -111,6 +116,18 @@ function App() {
         );
     }
 
+    //info["product_id"], info["user_id"], info["regular_price"], info["promo_price"]
+    function addItemToPriceHistory(item){
+        const data = {
+            product_id: item.productId,
+            user_id: localStorage.getItem("currUser"),
+            regular_price: item.price,
+            promo_price: item.promoPrice,
+        }
+        fetch(`http://localhost:8000/priceHistory/addProduct`,
+            {method: "POST", body: JSON.stringify(data), headers: {"Content-Type": "application/json"}})
+    }
+
     function informationBox(item) {
         return(
             <div className="infoPanel">
@@ -125,6 +142,7 @@ function App() {
                 <p>{item.manufacturerDeclarations}</p>
                 <p>{item.allergensDescription}</p>
                 <p>${item.price}</p>
+                <button onClick={() => addItemToPriceHistory(item)}>add to history</button>
             </div>
         )
     }
@@ -184,6 +202,9 @@ function App() {
                     )}
                 </div>
                 <div className={"totalBox"}>total: {totalPrice}
+                    {<button onClick={() => navigate("/history")}>
+                        check price history
+                    </button>}
                     <button onClick={() => setCartList([])}>empty cart</button>
                     <button onClick={() => saveCart()}>save cart</button>
                 </div>

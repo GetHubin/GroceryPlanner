@@ -6,6 +6,7 @@ import {
 import Login from "./pages/Login.jsx";
 import Grocery from "./pages/Grocery.jsx";
 import Location from "./pages/Location.jsx";
+import ProductHistory from "./pages/productHistory.jsx";
 
 function App() {
 
@@ -25,6 +26,11 @@ function App() {
             <Route
                 path="/grocery"
                 element={<Grocery />}
+            />
+
+            <Route
+                path="/history"
+                element={<ProductHistory />}
             />
 
         </Routes>

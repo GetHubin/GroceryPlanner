@@ -9,6 +9,8 @@ from backend.APISupport import simplify_location, simplify_product_response
 from backend.DB_handling.cart import update_cart, get_cart
 from backend.DB_handling.locations import update_location_history, get_recent_locations
 from backend.DB_handling.users import get_user, create_user, login_user, delete_user, change_user_password
+from backend.DB_handling.priceHistory import delete_product_from_history, add_product_to_history, is_product_tracking, \
+    get_list_of_products_history, find_product_history
 
 app = FastAPI()
 app.add_middleware(
@@ -88,6 +90,19 @@ async def search_product(product_id: str, user_id: int):
     response = response.json()
     return simplify_product_response(response)
 
+@app.get("/search/byId/{product_id}/{user_id}")
+async def search_by_id(product_id: str, user_id: int):
+    token = (await get_token())["access_token"]
+    user = get_user(user_id)
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"https://api.kroger.com/v1/products?filter.productId={product_id}&filter.locationId={user['current_location_id']}",
+            headers=headers
+        )
+    response = response.json()
+    return simplify_product_response(response)
+
 @app.get("/search/{search_term}/{user_id}")
 async def search(search_term: str, user_id: int):
     token = (await get_token())["access_token"]
@@ -96,11 +111,13 @@ async def search(search_term: str, user_id: int):
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"https://api.kroger.com/v1/products?filter.term={search_term}&filter.limit={LIMIT}&filter.locationId={user['current_location_id']}", headers=headers
+            f"https://api.kroger.com/v1/products?filter.term={search_term}&filter.limit={LIMIT}&filter.locationId={user['current_location_id']}",
+            headers=headers
         )
     response = response.json()
-    print(response)
     return simplify_product_response(response)
+
+
 
 @app.post("/accounts/signup")
 async def create_account(info: dict):
@@ -198,4 +215,38 @@ async def get_saved_cart(user_id: int):
         return cart
 
     return {"message": "User not found"}
+
+@app.get("/priceHistory/getPriceHistoryList/{user_id}")
+async def get_price_history_list(user_id: int):
+    history_list = await get_list_of_products_history()
+    final_list = []
+    for product in history_list:
+        final_list.append(await search_by_id(product, user_id))
+    return final_list
+
+#info["product_id"], info["user_id"], info["regular_price"], info["promo_price"]
+@app.post("/priceHistory/addProduct")
+async def add_product_history(data: dict):
+    if  await add_product_to_history(data):
+        return {"message": "success"}
+    else:
+        return {"message": "product not found"}
+
+@app.delete("/priceHistory/{product_id}")
+async def delete_product_from_history(product_id: str):
+    if delete_product_from_history(product_id):
+        return {"message": "success"}
+    else:
+        return {"message": "product not found"}
+
+@app.get("/priceHistory/{product_id}")
+async def get_product_history(product_id: str):
+    history = find_product_history(product_id)
+    if history is not None:
+        return history
+    return {"message": "product not found"}
+
+@app.get("/priceHistory/{product_id}/tracking")
+async def get_product_tracking(product_id: str):
+    return is_product_tracking(product_id)
 

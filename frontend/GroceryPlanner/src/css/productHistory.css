@@ -1,0 +1,49 @@
+.main-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.sidePanel{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 30%;
+    background-color: #b13939;
+    overflow-y: auto;
+}
+
+.historyPanel{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 70%;
+    background-color: #399fb1;
+}
+.buttons{
+    display: flex;
+    margin-top: auto;
+}
+
+.infoBox{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+
+}
+
+.infoPanel{
+    flex-direction: column;
+    background: #6b6375;
+    width: 100vh;
+    height: 60vh;
+    text-align: center;
+    justify-content: center;
+}

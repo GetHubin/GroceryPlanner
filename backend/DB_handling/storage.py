@@ -15,7 +15,7 @@ def load_db():
 def init_db():
     conn = load_db()
     cur = conn.cursor()
-    cur.execute("""drop table if exists cart""")
+    cur.execute("""drop table if exists price_history """)
     # cur.execute("""
     # CREATE TABLE location_history (
     # user_id INTEGER NOT NULL,
@@ -27,17 +27,17 @@ def init_db():
     # )
     # """)
     #
-    cur.execute("""
-    CREATE TABLE cart (
-    user_id INTEGER NOT NULL,
-    item_id TEXT NOT NULL,
-    quantity INTEGER NOT NULL,
-
-    PRIMARY KEY (user_id, item_id),
-
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-    )
-    """)
+    # cur.execute("""
+    # CREATE TABLE cart (
+    # user_id INTEGER NOT NULL,
+    # item_id TEXT NOT NULL,
+    # quantity INTEGER NOT NULL,
+    #
+    # PRIMARY KEY (user_id, item_id),
+    #
+    # FOREIGN KEY (user_id) REFERENCES users(user_id)
+    # )
+    # """)
     #
     # # cur.execute("""
     # CREATE TABLE users (
@@ -47,18 +47,20 @@ def init_db():
     # current_location_id TEXT
     # )
     # """)
-    # cur.execute("""
-    # CREATE TABLE price_history (
-    # item_id INTEGER NOT NULL,
-    # week_date DATE NOT NULL,
-    # price REAL NOT NULL,
-    #
-    # PRIMARY KEY (item_id, week_date)
-    # )
-    # """)
-    #
-    # conn.commit()
-    # conn.close()
+    cur.execute("""
+    CREATE TABLE price_history (
+    product_id TEXT NOT NULL,
+    location_id INTEGER NOT NULL,
+    week_date TEXT DEFAULT CURRENT_DATE,
+    norm_price REAL NOT NULL,
+    promo_price REAL,
+
+    PRIMARY KEY (product_id, week_date)
+    )
+    """)
+
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     print(SQL_PATH)

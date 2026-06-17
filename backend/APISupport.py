@@ -18,6 +18,7 @@ def simplify_location(response):
 def simplify_product_response(response):
     simplified = []
     price = None
+    promo = None
     if "data" in response:
         for item in response["data"]:
             if (
@@ -26,6 +27,13 @@ def simplify_product_response(response):
                     and item["items"][0].get("price")
             ):
                 price = item["items"][0]["price"].get("regular")
+
+            if (
+                    item.get("items")
+                    and len(item["items"]) > 0
+                    and item["items"][0].get("price")
+            ):
+                promo = item["items"][0]["price"].get("promo")
 
             description = (
                 item["aisleLocations"][0]["description"]
@@ -41,6 +49,7 @@ def simplify_product_response(response):
                 "productId": item["productId"],
                 "description": item["description"],
                 "price": price,
+                "promoPrice": promo,
                 "aisleLocations": description,
                 "manufacturerDeclarations": item.get("manufacturerDeclarations", []),
                 "allergensDescription": item.get("allergensDescription", []),
@@ -49,6 +58,7 @@ def simplify_product_response(response):
             })
     else:
         print("hey you need help")
+    print (len(simplified))
     if len(simplified) == 1:
         return simplified[0]
     return simplified
