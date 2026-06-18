@@ -2,7 +2,7 @@ import asyncio
 import sqlite3
 import httpx
 from backend.APISupport import *
-from storage import load_db
+from backend.DB_handling.storage import load_db
 async def update_prices():
     db = load_db()
     cur = db.cursor()
