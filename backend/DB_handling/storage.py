@@ -50,7 +50,7 @@ def init_db():
     cur.execute("""
     CREATE TABLE price_history (
     product_id TEXT NOT NULL,
-    location_id INTEGER NOT NULL,
+    location_id TEXT NOT NULL,
     week_date TEXT DEFAULT CURRENT_DATE,
     norm_price REAL NOT NULL,
     promo_price REAL,

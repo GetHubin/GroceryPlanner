@@ -1,0 +1,36 @@
+name: Update Prices
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # Daily at 5 AM UTC
+  workflow_dispatch:     # Adds "Run workflow" button
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Price Update
+        run: |
+          python backend/DB_handling/update_prices.py
+
+      - name: Commit Database Changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git add backend/data.db
+          git commit -m "Daily price update" || echo "No changes to commit"
+          git push

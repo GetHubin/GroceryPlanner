@@ -1,11 +1,8 @@
 import httpx
-import base64
-import json
-from pathlib import Path
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from backend.APISupport import simplify_location, simplify_product_response
+from backend.APISupport import simplify_location, simplify_product_response, get_token
 from backend.DB_handling.cart import update_cart, get_cart
 from backend.DB_handling.locations import update_location_history, get_recent_locations
 from backend.DB_handling.users import get_user, create_user, login_user, delete_user, change_user_password
@@ -22,33 +19,8 @@ app.add_middleware(
 )
 
 LIMIT = 50
-CLIENT_ID = "goceryplanner-bbcfygmt"
-CLIENT_SECRET = "eVJd97wJrSNkkABBxrGRKh319eCL-WJBxAwrEew-"
 
-async def get_token():
 
-    auth_string = f"{CLIENT_ID}:{CLIENT_SECRET}"
-    auth_bytes = auth_string.encode("utf-8")
-    auth_base64 = base64.b64encode(auth_bytes).decode("utf-8")
-
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": f"Basic {auth_base64}"
-    }
-
-    data = {
-        "grant_type": "client_credentials",
-        "scope": "product.compact"
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://api.kroger.com/v1/connect/oauth2/token",
-            headers=headers,
-            data=data
-        )
-
-    return response.json()
 
 @app.get("/locations/{zip_code}/zip")
 async def get_location_on_zip(zip_code: str):
@@ -218,7 +190,7 @@ async def get_saved_cart(user_id: int):
 
 @app.get("/priceHistory/getPriceHistoryList/{user_id}")
 async def get_price_history_list(user_id: int):
-    history_list = await get_list_of_products_history()
+    history_list = get_list_of_products_history()
     final_list = []
     for product in history_list:
         final_list.append(await search_by_id(product, user_id))
@@ -227,7 +199,7 @@ async def get_price_history_list(user_id: int):
 #info["product_id"], info["user_id"], info["regular_price"], info["promo_price"]
 @app.post("/priceHistory/addProduct")
 async def add_product_history(data: dict):
-    if  await add_product_to_history(data):
+    if add_product_to_history(data):
         return {"message": "success"}
     else:
         return {"message": "product not found"}

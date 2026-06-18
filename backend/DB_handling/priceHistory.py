@@ -5,7 +5,7 @@ from backend.DB_handling.users import get_user
 import sqlite3
 
 
-async def add_product_to_history(info):
+def add_product_to_history(info):
     db = load_db()
     cur = db.cursor()
     user = get_user(info["user_id"])
@@ -42,7 +42,7 @@ def is_product_tracking(product_id):
     db.close()
     return True
 
-async def get_list_of_products_history():
+def get_list_of_products_history():
     db = load_db()
     cur = db.cursor()
     cur.execute("SELECT DISTINCT product_id FROM price_history ORDER BY product_id")
