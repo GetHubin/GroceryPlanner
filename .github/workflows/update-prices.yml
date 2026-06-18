@@ -23,8 +23,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Price Update
-        run: |
-          python backend/DB_handling/update_prices.py
+        run: python -m backend.DB_handling.update_prices
 
       - name: Commit Database Changes
         run: |
