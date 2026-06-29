@@ -1,6 +1,44 @@
 import {useEffect, useState} from 'react'
 import '../css/productHistory.css'
 import {useNavigate} from "react-router-dom";
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer, BarChart, Bar
+} from "recharts";
+
+function PriceGraph(props) {
+    return (
+        <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={props.data}>
+                <CartesianGrid strokeDasharray="3 3" />
+
+                <XAxis dataKey="week_date" />
+
+                <YAxis />
+
+                <Tooltip />
+
+                <Legend />
+
+                <Bar
+                    dataKey="norm_price"
+                    fill="#ff4d4d"
+                />
+
+                <Bar
+                    dataKey="promo_price"
+                    fill="#4da6ff"
+                />
+            </BarChart>
+        </ResponsiveContainer>
+    );
+}
 
 function App(){
     const navigate = useNavigate();
@@ -44,7 +82,7 @@ function App(){
                 <p>{item.aisleLocations}</p>
                 <p>{item.manufacturerDeclarations}</p>
                 <p>{item.allergensDescription}</p>
-                <p>${item.price}</p>
+                <p>price: ${item.price} promo: ${item.promoPrice}</p>
             </div>
         )
     }
@@ -65,8 +103,10 @@ function App(){
 
                 {(pickedProduct?.productId === item.productId
                 ) && (
-                    <button onClick={() =>
-                        setPickedProduct(null)
+                    <button onClick={() =>{
+                        setPickedProduct(null);
+                        setHistoryData([])
+                    }
                     }>
                         deselect
                     </button>
@@ -107,11 +147,14 @@ function App(){
             </div>
             <div className={"historyPanel"}>info
                 {pickedProduct && <h1>{pickedProduct.description}</h1>}
+                {historyData.length > 0 && (
+                    <PriceGraph data={historyData} />
+                )}
                 {historyData.map((entry, index) => (
                     <p key={index}>
-                        ${entry.week_date}
-                        ${entry.promo_price}
-                        ${entry.norm_price}
+                        date: {entry.week_date} |
+                        promo price: ${entry.promo_price ?? NaN} |
+                        normal price: ${entry.norm_price}
                     </p>
                 ))}
             </div>

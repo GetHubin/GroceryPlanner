@@ -60,6 +60,7 @@ def simplify_product_response(response):
                 "manufacturerDeclarations": item.get("manufacturerDeclarations", []),
                 "allergensDescription": item.get("allergensDescription", []),
                 "imageUrl": imageURL,
+                "size": item["items"][0].get("size"),
                 "quantity": 1
             })
     else:

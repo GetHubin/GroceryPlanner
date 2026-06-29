@@ -77,8 +77,10 @@ function App() {
                 <h2>{item.description}</h2>
 
                 <p>
-                    ${item.price ?? NaN}
+                    normal price: ${item.price ?? NaN}
                 </p>
+
+                <p> promo: ${item.promoPrice ?? NaN}</p>
 
                 <button onClick={() => decrement(item)}>-1</button>
 
@@ -141,7 +143,7 @@ function App() {
                 <p>{item.aisleLocations}</p>
                 <p>{item.manufacturerDeclarations}</p>
                 <p>{item.allergensDescription}</p>
-                <p>${item.price}</p>
+                <p>price: ${item.price} promo: ${item.promoPrice}</p>
                 <button onClick={() => addItemToPriceHistory(item)}>add to history</button>
             </div>
         )

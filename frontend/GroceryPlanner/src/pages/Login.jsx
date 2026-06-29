@@ -5,6 +5,7 @@ import {useState} from "react";
 function Login() {
     const [Username, setUsername] = useState("");
     const [Password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
 
 function login()
@@ -22,6 +23,9 @@ function login()
                 localStorage.setItem("currUser", data.userId);
                 navigate("/Location");
             }
+            else{
+                setErrorMessage("username or password is incorrect or user does not exist.");
+            }
         })
 }
 function signup(){
@@ -38,27 +42,38 @@ function signup(){
                 localStorage.setItem("currUser", data.userId);
                 navigate("/Location");
             }
+            else{
+                setErrorMessage("username already exist.");
+            }
         })
 }
 
     return (
-        <div>
-            <h1>Welcome please sign in or sign up here</h1>
-            <input type="text"
-                onChange={(e) => setUsername(e.target.value)}
-                value={Username}
-                placeholder="type Username here"/>
-            <input type="text"
-                onChange={(e) => setPassword(e.target.value)}
-                value={Password}
-                placeholder="type Password here"/>
-            <button onClick={() => login()}>login</button>
-            <button onClick={() => signup()}>signup</button>
-            {<button onClick={() => navigate("/location")}>
-                Start Shopping
-            </button>}
+        <div className="login-page">
+            <div className="login-box">
+                <h1>Welcome</h1>
+                <p>Sign in or create an account.</p>
+
+                <input
+                    type="text"
+                    value={Username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                />
+
+                <input
+                    type="password"
+                    value={Password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                />
+                <p>{errorMessage}</p>
+                <button onClick={login}>Login</button>
+                <button onClick={signup}>Sign Up</button>
+
+            </div>
         </div>
-    )
+    );
 }
 
 export default Login;
