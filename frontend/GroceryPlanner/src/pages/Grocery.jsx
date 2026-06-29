@@ -84,7 +84,9 @@ function App() {
 
                 <button onClick={() => decrement(item)}>-1</button>
 
-                <p>{item.quantity ?? 1}</p>
+                <div className="quantityBox">
+                    <span>{item.quantity}</span>
+                </div>
 
                 <button onClick={() => increment(item)}>+1</button>
 
@@ -186,16 +188,18 @@ function App() {
     }, []);
 
     return(
-        <div className={"main-container"}>
+        <div className={"grocery-main-container"}>
             <div className={"searchPanel"}>search
                 <input type={"text"}
                        value={searchBar}
                        placeholder="Type here..." onChange={(e) => setText(e.target.value)}>
                 </input>
                 <button onClick={() => searching()}>Submit</button>
-                {searchList.map((item, index) =>
-                    <div key={index}>{productBox(item)}</div>
-                )}
+                <div className="searchResults">
+                    {searchList.map((item, index) =>
+                        <div key={index}>{productBox(item)}</div>
+                    )}
+                </div>
             </div>
             <div className={"cartPanel"}>cart
                 <div className="cartItems">
